@@ -22,7 +22,6 @@ export class UsersService {
     @InjectRepository(User) private readonly users: Repository<User>,
     @InjectRepository(Verification)
     private readonly verification: Repository<Verification>,
-    private readonly config: ConfigService,
     private readonly jwtService: JwtService,
     private readonly mailService: MailService,
   ) {}
