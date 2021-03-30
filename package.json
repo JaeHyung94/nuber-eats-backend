@@ -91,7 +91,12 @@
     "coveragePathIgnorePatterns": [
       "node_modules",
       ".entity.ts",
-      ".constants.ts"
+      ".constants.ts",
+      ".dto.ts",
+      ".module.ts",
+      ".resolver.ts",
+      "auth",
+      ".entitiy.ts"
     ]
   }
 }

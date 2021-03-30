@@ -91,14 +91,11 @@ export class UsersService {
 
   async findById(id: number): Promise<UserProfileOutput> {
     try {
-      const user = await this.users.findOne({ id });
-
-      if (user) {
-        return {
-          ok: true,
-          user: user,
-        };
-      }
+      const user = await this.users.findOneOrFail({ id });
+      return {
+        ok: true,
+        user,
+      };
     } catch (error) {
       return {
         ok: false,
@@ -157,7 +154,7 @@ export class UsersService {
         error: 'Verification not found',
       };
     } catch (error) {
-      return { ok: false, error };
+      return { ok: false, error: 'Could not verify Email' };
     }
   }
 }
