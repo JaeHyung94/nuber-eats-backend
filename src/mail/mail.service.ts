@@ -9,11 +9,7 @@ export class MailService {
   constructor(
     @Inject(CONFIG_OPTIONS) private readonly options: MailModuleOptions,
   ) {}
-  private async sendEmail(
-    subject: string,
-    template: string,
-    emailVars: EmailVar[],
-  ) {
+  async sendEmail(subject: string, template: string, emailVars: EmailVar[]) {
     const form = new FormData();
     form.append('from', `Jay from Nuber Eats <mailgun@${this.options.domain}>`);
     form.append('to', `jhpark.members@gmail.com`);
