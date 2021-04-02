@@ -5,6 +5,7 @@ import { AppModule } from '../src/app.module';
 import { getConnection, Repository } from 'typeorm';
 import { User } from 'src/users/entities/user.entitiy';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { Verification } from 'src/users/entities/verification.entitiy';
 
 jest.mock('got', () => {
   return {
@@ -19,6 +20,7 @@ const PASSWORD = '123';
 describe('UserModule (e2e)', () => {
   let app: INestApplication;
   let usersRepository: Repository<User>;
+  let verificationsRepository: Repository<Verification>;
   let jwtToken: string;
 
   beforeAll(async () => {
@@ -28,6 +30,9 @@ describe('UserModule (e2e)', () => {
 
     app = module.createNestApplication();
     usersRepository = module.get<Repository<User>>(getRepositoryToken(User));
+    verificationsRepository = module.get<Repository<Verification>>(
+      getRepositoryToken(Verification),
+    );
     await app.init();
   });
 
@@ -293,16 +298,45 @@ describe('UserModule (e2e)', () => {
   });
 
   describe('editProfile', () => {
-    it('should change password', () => {
-      const NEW_PASSWORD = '12345';
+    it('should change email', () => {
       return request(app.getHttpServer())
         .post(GRAPHQL_ENDPOINT)
         .set('x-jwt', jwtToken)
         .send({
-          mutation: `
+          query: `
         mutation {
           editProfile(input: {
-            password: "${NEW_PASSWORD}"
+            email: "jay@park2.com"
+          }) {
+            ok
+            error
+          }
+        }
+        `,
+        })
+        .expect(200)
+        .expect(res => {
+          const {
+            body: {
+              data: {
+                editProfile: { ok, error },
+              },
+            },
+          } = res;
+          expect(ok).toBe(true);
+          expect(error).toBe(null);
+        });
+    });
+
+    it('should change password', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .set('x-jwt', jwtToken)
+        .send({
+          query: `
+        mutation {
+          editProfile(input: {
+            password: "12345"
           }) {
             ok
             error
@@ -325,5 +359,69 @@ describe('UserModule (e2e)', () => {
     });
   });
 
-  it.todo('verifyEmail');
+  describe('verifyEmail', () => {
+    let verificationCode: string;
+    beforeAll(async () => {
+      const [verification] = await verificationsRepository.find();
+      verificationCode = verification.code;
+    });
+
+    it('should verify email', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+        mutation {
+          verifyEmail(input: {
+            code: "${verificationCode}"
+          }) {
+            ok
+            error
+          }
+        }
+        `,
+        })
+        .expect(200)
+        .expect(res => {
+          const {
+            body: {
+              data: {
+                verifyEmail: { ok, error },
+              },
+            },
+          } = res;
+          expect(ok).toBe(true);
+          expect(error).toBe(null);
+        });
+    });
+
+    it('should not verify email with wrong verification code', () => {
+      return request(app.getHttpServer())
+        .post(GRAPHQL_ENDPOINT)
+        .send({
+          query: `
+        mutation {
+          verifyEmail(input: {
+            code: "verificationCode"
+          }) {
+            ok
+            error
+          }
+        }
+        `,
+        })
+        .expect(200)
+        .expect(res => {
+          const {
+            body: {
+              data: {
+                verifyEmail: { ok, error },
+              },
+            },
+          } = res;
+          expect(ok).toBe(false);
+          expect(error).toBe('Verification not found');
+        });
+    });
+  });
 });
