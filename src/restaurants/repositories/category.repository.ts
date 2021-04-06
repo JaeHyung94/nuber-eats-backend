@@ -5,13 +5,15 @@ import { Category } from '../entities/category.entity';
 export class CategoryRepository extends Repository<Category> {
   async getOrCreate(name: string): Promise<Category> {
     const categoryName = name.trim().toLowerCase();
-    const categorySlug = name.replace(/ /g, '-');
+    const categorySlug = categoryName.replace(/ /g, '-');
 
-    let category = await this.findOne({ slug: categorySlug });
+    let category = await this.findOne({ name: categoryName });
     if (!category) {
-      this.save(this.create({ slug: categorySlug, name: categoryName }));
+      const newCategory = await this.save(
+        this.create({ slug: categorySlug, name: categoryName }),
+      );
+      return newCategory;
     }
-
     return category;
   }
 }

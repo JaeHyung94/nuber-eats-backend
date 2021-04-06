@@ -18,6 +18,7 @@ import {
   DeleteRestaurantOutput,
 } from './dtos/delete-restaurant.dto';
 import { AllCategoriesOutput } from './dtos/all-categories.dto';
+import { CategoryInput, CategoryOutput } from './dtos/category.dto';
 
 @Injectable()
 export class RestaurantService {
@@ -34,10 +35,13 @@ export class RestaurantService {
     try {
       const newRestaurant = this.restaurants.create(createRestaurantInput);
       newRestaurant.owner = owner;
+      console.log(createRestaurantInput.categoryName);
       const category = await this.category.getOrCreate(
         createRestaurantInput.categoryName,
       );
+      console.log(category);
       newRestaurant.category = category;
+      console.log(newRestaurant);
       await this.restaurants.save(newRestaurant);
       return {
         ok: true,
@@ -142,6 +146,39 @@ export class RestaurantService {
       return {
         ok: false,
         error: 'Could not load categories',
+      };
+    }
+  }
+
+  countRestaurant(category: Category): Promise<number> {
+    return this.restaurants.count({ category });
+  }
+
+  async findCategoryBySlug({ slug }: CategoryInput): Promise<CategoryOutput> {
+    try {
+      const category = await this.category.findOne(
+        { slug },
+        { relations: ['restaurants'] },
+      );
+
+      if (!category) {
+        return {
+          ok: false,
+          error: 'Category Not Found',
+        };
+      }
+
+      const restaurants = await this.restaurants.find({ category });
+      console.log(restaurants);
+
+      return {
+        ok: true,
+        category,
+      };
+    } catch (error) {
+      return {
+        ok: false,
+        error: 'Cannot Find Category by Slug',
       };
     }
   }

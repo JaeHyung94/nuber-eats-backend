@@ -19,7 +19,7 @@ export class Category extends CoreEntity {
   coverImage: string;
 
   @Field(type => String)
-  @Column({ unique: true })
+  @Column()
   @IsString()
   slug: string;
 
