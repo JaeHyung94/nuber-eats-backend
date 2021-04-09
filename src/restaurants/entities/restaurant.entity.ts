@@ -40,13 +40,11 @@ export class Restaurant extends CoreEntity {
   @RelationId((restaurant: Restaurant) => restaurant.owner)
   ownerId: number;
 
-  @Field(type => Dish)
-  @ManyToOne(type => Dish, dish => dish.restaurant, {
-    onDelete: 'SET NULL',
-  })
+  @Field(type => [Dish])
+  @OneToMany(type => Dish, dish => dish.restaurant)
   menu: Dish[];
 
-  @Field(type => Order)
+  @Field(type => [Order])
   @OneToMany(type => Order, order => order.restaurant)
   orders: Order[];
 }

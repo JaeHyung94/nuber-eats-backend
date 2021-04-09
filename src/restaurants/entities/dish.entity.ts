@@ -6,7 +6,7 @@ import { Restaurant } from './restaurant.entity';
 
 @InputType('DishChoiceInputType', { isAbstract: true })
 @ObjectType()
-class DishChoice {
+export class DishChoice {
   @Field(type => String)
   name: string;
 
@@ -16,11 +16,11 @@ class DishChoice {
 
 @InputType('DishOptionInputType', { isAbstract: true })
 @ObjectType()
-class DishOption {
+export class DishOption {
   @Field(type => String)
   name: string;
 
-  @Field(type => [String], { nullable: true })
+  @Field(type => [DishChoice], { nullable: true })
   choices?: DishChoice[];
 
   @Field(type => Number, { nullable: true })
@@ -60,7 +60,7 @@ export class Dish extends CoreEntity {
   @RelationId((dish: Dish) => dish.restaurant)
   restaurantId: number;
 
-  @Field(type => DishOption, { nullable: true })
+  @Field(type => [DishOption], { nullable: true })
   @Column({ type: 'json', nullable: true })
   options?: DishOption[];
 }

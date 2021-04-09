@@ -46,13 +46,13 @@ export class RestaurantService {
     try {
       const newRestaurant = this.restaurants.create(createRestaurantInput);
       newRestaurant.owner = owner;
-      console.log(createRestaurantInput.categoryName);
+
       const category = await this.category.getOrCreate(
         createRestaurantInput.categoryName,
       );
-      console.log(category);
+
       newRestaurant.category = category;
-      console.log(newRestaurant);
+
       await this.restaurants.save(newRestaurant);
       return {
         ok: true,
@@ -229,7 +229,7 @@ export class RestaurantService {
       const restaurant = await this.restaurants.findOne(
         restaurantInput.restaurantId,
         {
-          relations: ['menu'],
+          relations: ['menu', 'owner'],
         },
       );
 
@@ -303,10 +303,11 @@ export class RestaurantService {
         };
       }
 
-      const dish = await this.dishes.save(
+      await this.dishes.save(
         this.dishes.create({ ...createDishInput, restaurant }),
       );
-      console.log(dish);
+
+      console.log(await this.dishes.findOne());
 
       return {
         ok: true,
