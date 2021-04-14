@@ -64,8 +64,14 @@ import { OrderItem } from './orders/entities/order-item.entity';
       ],
     }),
     GraphQLModule.forRoot({
+      installSubscriptionHandlers: true,
       autoSchemaFile: true,
-      context: ({ req }) => ({ user: req['user'] }),
+      context: ({ req, connection }) => {
+        const TOKEN_KEY = 'x-jwt';
+        return {
+          token: req ? req.headers[TOKEN_KEY] : connection.context[TOKEN_KEY],
+        };
+      },
     }),
     JwtModule.forRoot({
       privateKey: process.env.SECRET_KEY,
@@ -79,15 +85,21 @@ import { OrderItem } from './orders/entities/order-item.entity';
     UsersModule,
     RestaurantsModule,
     OrdersModule,
+    CommonModule,
   ],
   controllers: [],
   providers: [],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(JwtMiddleware).forRoutes({
-      path: '/graphql',
-      method: RequestMethod.POST,
-    });
-  }
-}
+export class AppModule {}
+
+// 이 jwt middleware는 req, res, next를 가지는데 이건 오로지 HTTP를 위한 것.
+// Subscription으로 authentication 하려면 user 정보를 받아야 하는데, middleware가 connection에서는 작동을 안해.
+// 그런데 AuthGuard는 HTTP/Websocet 전부 작동하니, Middleware를 없애고 Guard를 수정해서 HTTP/WS 모두 작동할 수 있게 수정해야 함.
+// export class AppModule implements NestModule {
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer.apply(JwtMiddleware).forRoutes({
+//       path: '/graphql',
+//       method: RequestMethod.POST,
+//     });
+//   }
+// }
