@@ -183,15 +183,17 @@ export class RestaurantService {
         where: {
           category,
         },
-        take: 25,
-        skip: (page - 1) * 25,
+        take: 3,
+        skip: (page - 1) * 3,
       });
       category.restaurants = restaurants;
       const totalResults = await this.countRestaurant(category);
       return {
         ok: true,
         category,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / 3),
+        totalResults,
+        restaurants,
       };
     } catch (error) {
       return {
@@ -204,17 +206,18 @@ export class RestaurantService {
   async allRestaurants({ page }: RestaurantsInput): Promise<RestaurantsOutput> {
     try {
       const [restaurants, totalResults] = await this.restaurants.findAndCount({
-        skip: (page - 1) * 25,
-        take: 25,
+        skip: (page - 1) * 3,
+        take: 3,
         order: {
           isPromoted: 'DESC',
         },
+        relations: ['category'],
       });
 
       return {
         ok: true,
         results: restaurants,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / 3),
         totalResults,
       };
     } catch (error) {
@@ -232,7 +235,7 @@ export class RestaurantService {
       const restaurant = await this.restaurants.findOne(
         restaurantInput.restaurantId,
         {
-          relations: ['menu', 'owner'],
+          relations: ['menu', 'owner', 'category'],
         },
       );
 
@@ -265,16 +268,17 @@ export class RestaurantService {
           // name: Like(`%${query}%`), : 대소문자를 구분함. 대소문자 구분 안하는 ILIKE는 아직 TypeORM이 정식 지원을 안함.
           name: Raw(name => `${name} ILIKE '%${query}%'`),
         },
-        skip: (page - 1) * 25,
-        take: 25,
+        skip: (page - 1) * 3,
+        take: 3,
         order: {
           isPromoted: 'DESC',
         },
+        relations: ['category'],
       });
 
       return {
         ok: true,
-        totalPages: Math.ceil(totalResults / 25),
+        totalPages: Math.ceil(totalResults / 3),
         totalResults,
         restaurants,
       };
