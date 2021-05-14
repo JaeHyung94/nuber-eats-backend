@@ -110,8 +110,10 @@ export class OrderService {
       });
       return {
         ok: true,
+        orderId: order.id,
       };
     } catch (error) {
+      console.log(error);
       return {
         ok: false,
         error: 'Cannot Creating Order',
